@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cookie Cosmos</title>
+
+  <style>
+    :root {
+      --bg: #171321;
+      --panel: #241d35;
+      --panel-light: #302546;
+      --text: #fff7e6;
+      --muted: #bcaeca;
+      --accent: #ffc857;
+      --accent-dark: #d89518;
+      --danger: #ff6b6b;
+      --success: #80ed99;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, #3b2756 0, transparent 45%),
+        var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 18px 28px;
+      background: rgba(15, 11, 24, 0.85);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      font-size: clamp(1.3rem, 3vw, 2rem);
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: var(--accent);
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .small-button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .top-actions {
+      align-items: center;
+    }
+
+    .volume-slider {
+      width: 90px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .small-button:hover {
+      background: var(--panel-light);
+      transform: translateY(-1px);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+      gap: 22px;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .left-column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(48, 37, 70, 0.96), rgba(31, 24, 47, 0.96));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.18);
+    }
+
+    .stats {
+      text-align: center;
+    }
+
+    .stats h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--accent);
+      overflow-wrap: anywhere;
+    }
+
+    .stats p {
+      margin: 4px 0;
+      color: var(--muted);
+    }
+
+    .cookie-stage {
+      display: grid;
+      place-items: center;
+      min-height: 360px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cookie {
+      --cookie-color: #d68a3a;
+      --cookie-dark: #8d4b20;
+      width: min(72vw, 290px);
+      aspect-ratio: 1;
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      isolation: isolate;
+      color: white;
+      background:
+        radial-gradient(circle at 28% 25%, rgba(255,255,255,.3) 0 2%, transparent 3%),
+        radial-gradient(circle at 70% 35%, rgba(0,0,0,.2) 0 2%, transparent 3%),
+        radial-gradient(circle at 42% 68%, rgba(0,0,0,.18) 0 2%, transparent 3%),
+        radial-gradient(circle at 76% 76%, rgba(255,255,255,.18) 0 2%, transparent 3%),
+        var(--cookie-color);
+      border: 12px solid color-mix(in srgb, var(--cookie-dark) 75%, black);
+      box-shadow:
+        inset 0 10px 0 rgba(255,255,255,.14),
+        inset 0 -18px 0 rgba(0,0,0,.16),
+        0 18px 0 var(--cookie-dark),
+        0 25px 35px rgba(0,0,0,.35);
+      transition: transform 0.08s ease, filter 0.2s ease;
+    }
+
+    .cookie:hover {
+      filter: brightness(1.08);
+      transform: scale(1.025);
+    }
+
+    .cookie:active,
+    .cookie.clicked {
+      transform: scale(0.94) rotate(-2deg);
+    }
+
+    .cookie::before,
+    .cookie::after {
+      content: "";
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      border: 2px dashed rgba(255,255,255,.22);
+      pointer-events: none;
+    }
+
+    .cookie::after {
+      inset: 25%;
+      border-style: dotted;
+      opacity: .7;
+    }
+
+    .cookie-symbol {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: clamp(3rem, 10vw, 5rem);
+      text-shadow: 0 4px 0 rgba(0, 0, 0, .25);
+      pointer-events: none;
+    }
+
+    .click-float {
+      position: absolute;
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 1.25rem;
+      pointer-events: none;
+      animation: floatUp 900ms ease-out forwards;
+      z-index: 3;
+    }
+
+    @keyframes floatUp {
+      from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-90px) scale(1.3);
+      }
+    }
+
+    .rate {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .rate strong {
+      display: block;
+      font-size: 1.35rem;
+      color: var(--success);
+    }
+
+    .rate span {
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 15px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .skin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 10px;
+      max-height: 390px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .skin-button {
+      min-height: 86px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      cursor: pointer;
+      padding: 8px;
+      transition: .2s ease;
+    }
+
+    .skin-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+    }
+
+    .skin-button.selected {
+      outline: 2px solid var(--accent);
+      background: rgba(255, 200, 87, .12);
+    }
+
+    .skin-button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+      filter: grayscale(.7);
+    }
+
+    .skin-preview {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 5px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      border: 3px solid rgba(0,0,0,.3);
+      box-shadow: inset 0 4px rgba(255,255,255,.2);
+    }
+
+    .skin-name {
+      display: block;
+      font-size: .75rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .skin-requirement {
+      display: block;
+      color: var(--muted);
+      font-size: .65rem;
+      margin-top: 3px;
+    }
+
+    .upgrade-area {
+      min-width: 0;
+    }
+
+    .upgrade-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .upgrade-toolbar p {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .upgrade-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 12px;
+      max-height: calc(100vh - 155px);
+      min-height: 500px;
+      overflow: auto;
+      padding: 3px;
+    }
+
+    .upgrade {
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 13px;
+      padding: 14px;
+      background: rgba(0,0,0,.17);
+      transition: .2s ease;
+    }
+
+    .upgrade.available {
+      border-color: rgba(128, 237, 153, .5);
+    }
+
+    .upgrade.purchased {
+      opacity: .55;
+      border-color: rgba(255,255,255,.08);
+    }
+
+    .upgrade.locked {
+      opacity: .48;
+    }
+
+    .upgrade[hidden] {
+      display: none;
+    }
+
+    .upgrade.milestone {
+      border-color: var(--accent);
+      background: linear-gradient(145deg, rgba(255, 200, 87, .16), rgba(0, 0, 0, .17));
+      box-shadow: 0 0 22px rgba(255, 200, 87, .14);
+    }
+
+    .upgrade.milestone.locked {
+      opacity: .72;
+    }
+
+    .upgrade.milestone.purchased {
+      opacity: .6;
+      box-shadow: none;
+    }
+
+    .upgrade .milestone-tag {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #2b1b05;
+      font-size: .7rem;
+      font-weight: 800;
+    }
+
+    .upgrade .payback {
+      min-height: 1.1em;
+      margin: -5px 0 10px;
+      color: var(--success);
+      font-size: .74rem;
+    }
+
+    .upgrade h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+    }
+
+    .upgrade p {
+      color: var(--muted);
+      font-size: .83rem;
+      line-height: 1.35;
+      min-height: 36px;
+      margin: 0 0 11px;
+    }
+
+    .upgrade-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .upgrade-cost {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: .84rem;
+    }
+
+    .buy-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 11px;
+      background: var(--accent);
+      color: #2b1b05;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .buy-button:hover:not(:disabled) {
+      background: #ffe08a;
+      transform: translateY(-1px);
+    }
+
+    .buy-button:disabled {
+      cursor: not-allowed;
+      background: #554b5e;
+      color: #aaa2ad;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: .7rem;
+      background: rgba(255,255,255,.1);
+      color: var(--muted);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background: rgba(8, 5, 14, .72);
+      backdrop-filter: blur(4px);
+    }
+
+    .small-button.danger {
+      border-color: rgba(255, 107, 107, .6);
+      background: rgba(255, 107, 107, .16);
+    }
+
+    .small-button.danger:hover {
+      background: rgba(255, 107, 107, .3);
+    }
+
+    .modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .modal {
+      width: min(100%, 420px);
+      max-height: 92vh;
+      overflow: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .role-note {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: .85rem;
+      line-height: 1.4;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .small-button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 40;
+      transform: translate(-50%, 130px);
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #2b1b05;
+      font-weight: 800;
+      box-shadow: 0 8px 30px rgba(0,0,0,.3);
+      transition: transform .3s ease;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .upgrade-list {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        position: static;
+        padding: 12px 14px;
+      }
+
+      .brand {
+        font-size: 1.4rem;
+        white-space: nowrap;
+      }
+
+      .topbar .top-actions {
+        gap: 6px;
+      }
+
+      .topbar .small-button {
+        padding: 7px 10px;
+        font-size: .85rem;
+      }
+
+      .topbar .volume-slider {
+        flex: 1 1 70px;
+        min-width: 60px;
+        width: auto;
+      }
+    }
+
+    @media (max-width: 500px) {
+      /* Phones have hardware volume, so drop the slider to keep the header to one row. */
+      .topbar .volume-slider {
+        display: none;
+      }
+
+      .topbar,
+      .layout {
+        padding: 14px;
+      }
+
+      .panel {
+        padding: 15px;
+      }
+
+      .cookie-stage {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">🍪 Cookie Cosmos</div>
+
+    <div class="top-actions">
+      <button class="small-button" id="musicButton" aria-pressed="true">🎵 Music: On</button>
+      <input class="volume-slider" id="volumeSlider" type="range" min="0" max="100" value="40" aria-label="Music volume" />
+      <button class="small-button" id="saveButton">Save</button>
+      <button class="small-button" id="resetButton">Reset</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="left-column">
+      <div class="panel stats">
+        <h1 id="cookieCount">0</h1>
+        <p>cookies in your jar</p>
+
+        <div class="rate">
+          <div>
+            <strong id="perSecond">0</strong>
+            <span>per second</span>
+          </div>
+          <div>
+            <strong id="perClick">1</strong>
+            <span>per click</span>
+          </div>
+          <div>
+            <strong id="multiplier">×1</strong>
+            <span>multiplier</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel cookie-stage" id="cookieStage">
+        <button class="cookie" id="cookieButton" aria-label="Click the cookie">
+          <span class="cookie-symbol" id="cookieSymbol">🍪</span>
+        </button>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">
+          <h2>Cookie Skins</h2>
+          <span id="skinProgress">1 / 50 unlocked</span>
+        </div>
+
+        <div class="skin-grid" id="skinGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel upgrade-area">
+      <div class="upgrade-toolbar">
+        <div>
+          <div class="section-title">
+            <h2>Upgrade Laboratory</h2>
+            <span class="badge" id="upgradeProgress">0 / 2004 owned</span>
+          </div>
+          <p>Buy upgrades to increase your clicking power and automatic production.</p>
+        </div>
+
+        <div class="top-actions">
+          <button class="small-button" id="hideOwnedButton">Hide Owned: On</button>
+          <button class="small-button" id="buyAffordableButton">
+            Buy Affordable
+          </button>
+        </div>
+      </div>
+
+      <div class="upgrade-list" id="upgradeList"></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="confirmModal" hidden>
+    <div class="panel modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+      <div class="modal-header">
+        <h2 id="confirmTitle">Reset everything?</h2>
+      </div>
+      <p class="role-note" id="confirmText">
+        This wipes all cookies, upgrades and skins. This cannot be undone.
+      </p>
+      <div class="field-row">
+        <button class="small-button" id="confirmCancel">Cancel</button>
+        <button class="small-button danger" id="confirmReset">Yes, reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    "use strict";
+
+    /*
+      Cookie Cosmos
+      - 2,000 procedurally generated upgrades (+ 4 milestone multipliers)
+      - 50 unlockable cookie skins
+      - Automatic production
+      - Local save system
+      - Offline progress
+    */
+
+    const LEGACY_UPGRADE_COUNT = 250;   // the original upgrades; ids 0-249 never change (keeps old saves valid)
+    const UPGRADE_COUNT = 2000;         // total regular upgrades (ids 0-1999)
+    const MAX_COOKIES = 1e300;          // hard ceiling so numbers never overflow to Infinity
+    const ASSUMED_CLICKS_PER_SECOND = 3; // used to balance and to estimate click-upgrade payback
+
+    /*
+      Late-game upgrade economy (ids 250-999).
+      Cost climbs smoothly from LATE_START_COST to LATE_END_COST.
+      Each upgrade is sized so that, before multipliers, it pays for itself in
+      LATE_PAYBACK_START seconds (first one) up to LATE_PAYBACK_END seconds (last one).
+      Owning the milestone multipliers cuts these times by 2.5x to 30x.
+    */
+    const LATE_START_COST = 22e6;
+    const LATE_END_COST = 5e9;
+    const LATE_PAYBACK_START = 7200;
+    const LATE_PAYBACK_END = 21600;
+
+    // Milestone upgrades: permanent multipliers to ALL click power and cookies per second.
+    const MILESTONES = [
+      { name: "Cookie Constellation",   cost: 1e7,  multiplier: 2.5 },
+      { name: "Galactic Bakery Guild",  cost: 1e8,  multiplier: 3 },
+      { name: "Universal Oven Network", cost: 1e9,  multiplier: 4 },
+      { name: "Cookie Singularity",     cost: 1e10, multiplier: 5 }
+    ];
+    const SKIN_COUNT = 50;
+    const SAVE_KEY = "cookie-cosmos-save-v1";
+
+    const upgradePrefixes = [
+      "Tiny", "Copper", "Helpful", "Turbo", "Quantum",
+      "Cosmic", "Royal", "Infinite", "Legendary", "Mythic"
+    ];
+
+    const upgradeObjects = [
+      "Cursor", "Grandma", "Farm", "Factory", "Mine",
+      "Laboratory", "Portal", "Time Machine", "Cookie Temple",
+      "Nanobot Swarm", "Dragon Bakery", "Star Furnace"
+    ];
+
+    const latePrefixes = [
+      "Astral", "Ember", "Frosted", "Gilded", "Molten", "Velvet", "Radiant", "Ancient", "Stellar", "Crystal",
+      "Solar", "Lunar", "Primal", "Arcane", "Eternal", "Celestial", "Sugared", "Titan", "Phantom", "Hyper",
+      "Imperial", "Elder", "Prismatic", "Ultra", "Omega", "Sovereign", "Transcendent", "Apex", "Godly", "Ultimate"
+    ];
+
+    const lateObjects = [
+      "Cursor", "Grandma", "Farm", "Factory", "Mine", "Laboratory",
+      "Portal", "Time Machine", "Cookie Temple", "Nanobot Swarm", "Dragon Bakery", "Star Furnace",
+      "Nebula Oven", "Black Hole Bakery", "Comet Kitchen", "Galaxy Mill", "Quasar Fryer", "Dimension Rift",
+      "Dough Reactor", "Sugar Colony", "Chrono Whisk", "Void Pantry", "Cosmic Cauldron", "Supernova Griddle"
+    ];
+
+    const cookieSymbols = ["🍪", "🍩", "🥠", "🧁", "🍰", "🎂", "🥧", "🍫"];
+
+    const state = {
+      cookies: 0,
+      totalCookies: 0,
+      clickPower: 1,
+      cookiesPerSecond: 0,
+      multiplier: 1,
+      purchasedUpgrades: [],
+      selectedSkin: 0,
+      lastSavedAt: Date.now()
+    };
+
+    const cookieCount = document.getElementById("cookieCount");
+    const perSecond = document.getElementById("perSecond");
+    const perClick = document.getElementById("perClick");
+    const multiplierDisplay = document.getElementById("multiplier");
+    const upgradeProgress = document.getElementById("upgradeProgress");
+    const hideOwnedButton = document.getElementById("hideOwnedButton");
+    const cookieButton = document.getElementById("cookieButton");
+    const cookieSymbol = document.getElementById("cookieSymbol");
+    const cookieStage = document.getElementById("cookieStage");
+    const upgradeList = document.getElementById("upgradeList");
+    const skinGrid = document.getElementById("skinGrid");
+    const skinProgress = document.getElementById("skinProgress");
+    const toast = document.getElementById("toast");
+
+    let toastTimer;
+
+    function finiteOr(value, fallback) {
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function formatNumber(value) {
+      if (Number.isNaN(value)) return "0";
+      if (!Number.isFinite(value)) return "∞";
+
+      const absolute = Math.abs(value);
+
+      if (absolute < 1000) {
+        return Math.floor(value).toLocaleString();
+      }
+
+      const suffixes = ["K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+      const tier = Math.floor(Math.log10(absolute) / 3);
+
+      if (tier <= 0) {
+        return Math.floor(value).toLocaleString();
+      }
+
+      if (tier >= suffixes.length + 1) {
+        return value.toExponential(2);
+      }
+
+      let shortValue = value / Math.pow(1000, tier);
+
+      // 999.6M would round up to "1000M" - roll it over to "1.00B" instead.
+      const rounded = Number(shortValue.toFixed(shortValue >= 100 ? 0 : 2));
+      if (rounded >= 1000) {
+        return tier < suffixes.length ? `1.00${suffixes[tier]}` : value.toExponential(2);
+      }
+
+      return `${shortValue.toFixed(shortValue >= 100 ? 0 : 2)}${suffixes[tier - 1]}`;
+    }
+
+    function formatMultiplier(value) {
+      if (value >= 1e6) return `×${formatNumber(value)}`;
+      return `×${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, "")}`;
+    }
+
+    function formatDuration(seconds) {
+      if (!Number.isFinite(seconds) || seconds <= 0) return "—";
+      if (seconds >= 86400 * 365) return "1y+";
+      if (Math.round(seconds) < 60) return `${Math.max(1, Math.round(seconds))}s`;
+
+      const totalMinutes = Math.round(seconds / 60);
+      if (totalMinutes < 60) return `${totalMinutes}m`;
+
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (hours < 48) return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+
+      return `${Math.round(seconds / 86400)}d`;
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    function addCookies(amount) {
+      state.cookies = Math.min(MAX_COOKIES, state.cookies + amount);
+      state.totalCookies = Math.min(MAX_COOKIES, state.totalCookies + amount);
+    }
+
+    // Original upgrades (ids 0-249) - unchanged.
+    function createLegacyUpgrade(index) {
+      const tier = Math.floor(index / 10);
+      const isClickUpgrade = index % 4 === 0 || index % 11 === 0;
+      const prefix = upgradePrefixes[Math.floor(index / 25) % upgradePrefixes.length];
+      const object = upgradeObjects[index % upgradeObjects.length];
+
+      const cost = Math.floor(
+        25 * Math.pow(1.045, index) * (1 + index / 18)
+      );
+
+      const unlockAt = Math.floor(25 + index * 115 + Math.pow(index, 1.4) * 4);
+
+      const effect = isClickUpgrade
+        ? Math.max(1, Math.floor(1 + index / 7))
+        : Math.max(1, Math.floor(2 + index / 3));
+
+      return {
+        id: index,
+        name: `${prefix} ${object} ${tier + 1}`,
+        description: isClickUpgrade
+          ? `Your clicks produce +${formatNumber(effect)} cookies.`
+          : `Automatically produces +${formatNumber(effect)} cookies per second.`,
+        cost,
+        unlockAt,
+        effect,
+        type: isClickUpgrade ? "click" : "cps"
+      };
+    }
+
+    // New upgrades (ids 250-999): effect is derived from cost so every one is worth buying.
+    function createLateUpgrade(index) {
+      const step = index - LEGACY_UPGRADE_COUNT;
+      const progress = step / (UPGRADE_COUNT - LEGACY_UPGRADE_COUNT - 1);
+
+      const cost = Math.floor(
+        LATE_START_COST * Math.pow(LATE_END_COST / LATE_START_COST, progress)
+      );
+
+      const paybackSeconds = LATE_PAYBACK_START *
+        Math.pow(LATE_PAYBACK_END / LATE_PAYBACK_START, progress);
+
+      const cpsValue = cost / paybackSeconds;
+      const isClickUpgrade = step % 4 === 0 || step % 11 === 0;
+
+      const effect = isClickUpgrade
+        ? Math.max(1, Math.round(cpsValue / ASSUMED_CLICKS_PER_SECOND))
+        : Math.max(1, Math.round(cpsValue));
+
+      const tier = Math.floor(index / 10);
+      const prefix = latePrefixes[Math.floor(step / 25) % latePrefixes.length];
+      const object = lateObjects[index % lateObjects.length];
+
+      return {
+        id: index,
+        name: `${prefix} ${object} ${tier + 1}`,
+        description: isClickUpgrade
+          ? `Your clicks produce +${formatNumber(effect)} cookies.`
+          : `Automatically produces +${formatNumber(effect)} cookies per second.`,
+        cost,
+        unlockAt: Math.floor(cost * 0.5),
+        effect,
+        type: isClickUpgrade ? "click" : "cps"
+      };
+    }
+
+    function createMilestoneUpgrade(id, milestone) {
+      return {
+        id,
+        name: milestone.name,
+        description: `Multiplies ALL click power and cookies per second by ${formatMultiplier(milestone.multiplier)}.`,
+        cost: milestone.cost,
+        unlockAt: Math.floor(milestone.cost * 0.5),
+        effect: milestone.multiplier,
+        type: "multiplier"
+      };
+    }
+
+    function createUpgrades() {
+      const list = [];
+
+      for (let index = 0; index < LEGACY_UPGRADE_COUNT; index++) {
+        list.push(createLegacyUpgrade(index));
+      }
+
+      for (let index = LEGACY_UPGRADE_COUNT; index < UPGRADE_COUNT; index++) {
+        list.push(createLateUpgrade(index));
+      }
+
+      MILESTONES.forEach((milestone, offset) => {
+        list.push(createMilestoneUpgrade(UPGRADE_COUNT + offset, milestone));
+      });
+
+      return list;
+    }
+
+    function createSkins() {
+      return Array.from({ length: SKIN_COUNT }, (_, index) => {
+        const hue = (index * 37) % 360;
+        const secondaryHue = (hue + 35) % 360;
+
+        return {
+          id: index,
+          name: index === 0 ? "Classic Cookie" : `Cosmic Cookie ${index + 1}`,
+          symbol: cookieSymbols[index % cookieSymbols.length],
+          color: `hsl(${hue}, 68%, 52%)`,
+          darkColor: `hsl(${secondaryHue}, 60%, 27%)`,
+          unlockAt: index === 0
+            ? 0
+            : Math.floor(index * 500 + Math.pow(index, 2) * 35)
+        };
+      });
+    }
+
+    const upgrades = createUpgrades();
+    const skins = createSkins();
+
+    // Display (and bulk-buy) order is cheapest-first, so milestones sit where they belong by price.
+    const upgradesByCost = upgrades.slice().sort((a, b) => a.cost - b.cost || a.id - b.id);
+
+    let upgradeCards = null;
+    let hideOwned = true;
+
+    function isUpgradeUnlocked(upgrade) {
+      return state.totalCookies >= upgrade.unlockAt;
+    }
+
+    function isSkinUnlocked(skin) {
+      return state.totalCookies >= skin.unlockAt;
+    }
+
+    function applySkin() {
+      const skin = skins[state.selectedSkin] || skins[0];
+
+      cookieButton.style.setProperty("--cookie-color", skin.color);
+      cookieButton.style.setProperty("--cookie-dark", skin.darkColor);
+      cookieSymbol.textContent = skin.symbol;
+    }
+
+    function recalculateStats() {
+      let clickPower = 1;
+      let cookiesPerSecond = 0;
+      let multiplier = 1;
+
+      for (const upgrade of upgrades) {
+        if (!state.purchasedUpgrades[upgrade.id]) continue;
+
+        if (upgrade.type === "click") {
+          clickPower += upgrade.effect;
+        } else if (upgrade.type === "multiplier") {
+          multiplier *= upgrade.effect;
+        } else {
+          cookiesPerSecond += upgrade.effect;
+        }
+      }
+
+      state.multiplier = multiplier;
+      state.clickPower = clickPower * multiplier;
+      state.cookiesPerSecond = cookiesPerSecond * multiplier;
+    }
+
+    // Rough time for an upgrade to pay for itself at the player's current production.
+    function estimatePaybackSeconds(upgrade) {
+      if (upgrade.type === "cps") {
+        return upgrade.cost / (upgrade.effect * state.multiplier);
+      }
+
+      if (upgrade.type === "click") {
+        return upgrade.cost / (upgrade.effect * state.multiplier * ASSUMED_CLICKS_PER_SECOND);
+      }
+
+      const income = state.cookiesPerSecond + state.clickPower * ASSUMED_CLICKS_PER_SECOND;
+      return upgrade.cost / ((upgrade.effect - 1) * income);
+    }
+
+    function renderStats() {
+      cookieCount.textContent = formatNumber(state.cookies);
+      perSecond.textContent = formatNumber(state.cookiesPerSecond);
+      perClick.textContent = formatNumber(state.clickPower);
+      multiplierDisplay.textContent = formatMultiplier(state.multiplier);
+
+      const unlockedSkins = skins.filter(isSkinUnlocked).length;
+      skinProgress.textContent = `${unlockedSkins} / ${SKIN_COUNT} unlocked`;
+    }
+
+    // Cards are created once and then updated in place, so the list keeps its
+    // scroll position and buttons never get replaced mid-click.
+    function buildUpgradeCards() {
+      upgradeList.innerHTML = "";
+      upgradeCards = new Map();
+
+      const fragment = document.createDocumentFragment();
+
+      upgradesByCost.forEach(upgrade => {
+        const isMilestone = upgrade.type === "multiplier";
+
+        const card = document.createElement("article");
+        card.innerHTML = `
+          ${isMilestone ? '<span class="milestone-tag">★ Milestone</span>' : ""}
+          <h3>${upgrade.name}</h3>
+          <p>${upgrade.description}</p>
+          <div class="payback"></div>
+          <div class="upgrade-footer">
+            <span class="upgrade-cost"></span>
+            <button class="buy-button" data-upgrade-id="${upgrade.id}"></button>
+          </div>
+        `;
+
+        upgradeCards.set(upgrade.id, {
+          card,
+          isMilestone,
+          payback: card.querySelector(".payback"),
+          cost: card.querySelector(".upgrade-cost"),
+          button: card.querySelector(".buy-button")
+        });
+
+        fragment.appendChild(card);
+      });
+
+      upgradeList.appendChild(fragment);
+    }
+
+    function renderUpgrades() {
+      if (!upgradeCards) buildUpgradeCards();
+
+      let owned = 0;
+
+      upgrades.forEach(upgrade => {
+        const view = upgradeCards.get(upgrade.id);
+        const purchased = Boolean(state.purchasedUpgrades[upgrade.id]);
+        const unlocked = isUpgradeUnlocked(upgrade);
+        const canAfford = state.cookies >= upgrade.cost;
+
+        if (purchased) owned++;
+
+        view.card.className = [
+          "upgrade",
+          view.isMilestone ? "milestone" : "",
+          purchased ? "purchased" : "",
+          unlocked ? "available" : "locked"
+        ].join(" ");
+
+        view.card.hidden = purchased && hideOwned;
+
+        const statusText = purchased
+          ? "Owned"
+          : unlocked
+            ? canAfford ? "Ready" : "Need more cookies"
+            : `Unlocks at ${formatNumber(upgrade.unlockAt)}`;
+
+        view.cost.textContent = purchased
+          ? "✓ Owned"
+          : `${formatNumber(upgrade.cost)} 🍪`;
+
+        view.button.textContent = statusText;
+        view.button.disabled = purchased || !unlocked || !canAfford;
+
+        if (purchased) {
+          view.payback.textContent = "";
+        } else {
+          const suffix = upgrade.type === "click"
+            ? ` (at ${ASSUMED_CLICKS_PER_SECOND} clicks/sec)`
+            : "";
+          view.payback.textContent =
+            `Pays for itself in ~${formatDuration(estimatePaybackSeconds(upgrade))}${suffix}`;
+        }
+      });
+
+      upgradeProgress.textContent = `${owned} / ${upgrades.length} owned`;
+    }
+
+    function renderSkins() {
+      skinGrid.innerHTML = "";
+
+      const fragment = document.createDocumentFragment();
+
+      skins.forEach(skin => {
+        const unlocked = isSkinUnlocked(skin);
+        const selected = state.selectedSkin === skin.id;
+
+        const button = document.createElement("button");
+        button.className = `skin-button ${selected ? "selected" : ""}`;
+        button.disabled = !unlocked;
+        button.dataset.skinId = skin.id;
+
+        button.innerHTML = `
+          <span
+            class="skin-preview"
+            style="
+              background: ${skin.color};
+              border-color: ${skin.darkColor};
+            "
+          >
+            ${unlocked ? skin.symbol : "🔒"}
+          </span>
+          <span class="skin-name">${skin.name}</span>
+          <span class="skin-requirement">
+            ${unlocked ? selected ? "Selected" : "Use skin" : `${formatNumber(skin.unlockAt)} cookies`}
+          </span>
+        `;
+
+        fragment.appendChild(button);
+      });
+
+      skinGrid.appendChild(fragment);
+    }
+
+    function renderAll() {
+      recalculateStats();
+      applySkin();
+      renderStats();
+      renderUpgrades();
+      renderSkins();
+    }
+
+    function buyUpgrade(upgradeId) {
+      const upgrade = upgrades[upgradeId];
+
+      if (!upgrade || state.purchasedUpgrades[upgradeId]) return;
+      if (!isUpgradeUnlocked(upgrade)) return;
+      if (state.cookies < upgrade.cost) {
+        showToast("You need more cookies for that upgrade.");
+        return;
+      }
+
+      state.cookies -= upgrade.cost;
+      state.purchasedUpgrades[upgradeId] = true;
+
+      recalculateStats();
+      renderAll();
+
+      showToast(
+        upgrade.type === "multiplier"
+          ? `★ ${upgrade.name}: all production ${formatMultiplier(upgrade.effect)}!`
+          : `${upgrade.name} purchased!`
+      );
+      saveGameSilently();
+    }
+
+    function buyAffordableUpgrades() {
+      let bought = 0;
+
+      for (const upgrade of upgradesByCost) {
+        if (
+          !state.purchasedUpgrades[upgrade.id] &&
+          isUpgradeUnlocked(upgrade) &&
+          state.cookies >= upgrade.cost
+        ) {
+          state.cookies -= upgrade.cost;
+          state.purchasedUpgrades[upgrade.id] = true;
+          bought++;
+        }
+      }
+
+      if (bought > 0) {
+        renderAll();
+        showToast(`${bought} upgrade${bought === 1 ? "" : "s"} purchased!`);
+        saveGameSilently();
+      } else {
+        showToast("No affordable upgrades yet.");
+      }
+    }
+
+    function handleCookieClick(event) {
+      addCookies(state.clickPower);
+
+      cookieButton.classList.remove("clicked");
+      void cookieButton.offsetWidth;
+      cookieButton.classList.add("clicked");
+
+      const float = document.createElement("span");
+      float.className = "click-float";
+      float.textContent = `+${formatNumber(state.clickPower)}`;
+
+      const stageRect = cookieStage.getBoundingClientRect();
+      const x = event.clientX
+        ? event.clientX - stageRect.left
+        : stageRect.width / 2;
+      const y = event.clientY
+        ? event.clientY - stageRect.top
+        : stageRect.height / 2;
+
+      float.style.left = `${x}px`;
+      float.style.top = `${y}px`;
+      cookieStage.appendChild(float);
+
+      setTimeout(() => float.remove(), 950);
+
+      renderStats();
+    }
+
+    function unlockNewSkinsIfNeeded(previousTotal) {
+      const newlyUnlocked = skins.filter(skin =>
+        previousTotal < skin.unlockAt &&
+        state.totalCookies >= skin.unlockAt
+      );
+
+      if (newlyUnlocked.length > 0) {
+        renderSkins();
+        showToast(`${newlyUnlocked.length} new cookie skin unlocked!`);
+      }
+    }
+
+    function buildSaveData() {
+      return {
+        cookies: finiteOr(state.cookies, 0),
+        totalCookies: finiteOr(state.totalCookies, 0),
+        purchasedUpgrades: state.purchasedUpgrades,
+        selectedSkin: state.selectedSkin,
+        lastSavedAt: state.lastSavedAt
+      };
+    }
+
+    // Returns false instead of throwing when the browser blocks storage.
+    function writeSave() {
+      state.lastSavedAt = Date.now();
+
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(buildSaveData()));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function saveGame() {
+      showToast(writeSave() ? "Game saved." : "Couldn't save - browser storage is blocked.");
+    }
+
+    function loadGame() {
+      let saved = null;
+
+      try {
+        saved = localStorage.getItem(SAVE_KEY);
+      } catch {
+        saved = null;
+      }
+
+      if (!saved) {
+        state.purchasedUpgrades = [];
+        return;
+      }
+
+      try {
+        const data = JSON.parse(saved);
+
+        state.cookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.cookies), 0)));
+        state.totalCookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.totalCookies), 0)));
+        state.purchasedUpgrades = Array.isArray(data.purchasedUpgrades)
+          ? data.purchasedUpgrades
+          : [];
+        state.selectedSkin = Number(data.selectedSkin) || 0;
+        state.lastSavedAt = Number(data.lastSavedAt) || Date.now();
+
+        const elapsedSeconds = Math.min(
+          Math.max(0, (Date.now() - state.lastSavedAt) / 1000),
+          60 * 60 * 8
+        );
+
+        recalculateStats();
+
+        const offlineCookies = elapsedSeconds * state.cookiesPerSecond;
+
+        if (offlineCookies > 0) {
+          addCookies(offlineCookies);
+
+          setTimeout(() => {
+            showToast(`Welcome back! You earned ${formatNumber(offlineCookies)} offline.`);
+          }, 400);
+        }
+      } catch {
+        localStorage.removeItem(SAVE_KEY);
+        state.purchasedUpgrades = [];
+      }
+    }
+
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmCancel = document.getElementById("confirmCancel");
+    const confirmReset = document.getElementById("confirmReset");
+    let resetLastFocused = null;
+
+    // The browser's confirm() popup is blocked in many embedded/preview windows,
+    // which made Reset silently do nothing - so we use our own dialog instead.
+    function resetGame() {
+      resetLastFocused = document.activeElement;
+      confirmModal.hidden = false;
+      confirmCancel.focus();
+    }
+
+    function closeResetConfirm() {
+      confirmModal.hidden = true;
+      if (resetLastFocused && resetLastFocused.focus) resetLastFocused.focus();
+    }
+
+    function performReset() {
+      try {
+        localStorage.removeItem(SAVE_KEY);
+      } catch {
+        /* storage blocked - the in-memory reset below still works */
+      }
+
+      state.cookies = 0;
+      state.totalCookies = 0;
+      state.clickPower = 1;
+      state.cookiesPerSecond = 0;
+      state.multiplier = 1;
+      state.purchasedUpgrades = [];
+      state.selectedSkin = 0;
+      state.lastSavedAt = Date.now();
+
+      closeResetConfirm();
+      renderAll();
+      writeSave();
+      showToast("Your cookie empire has been reset.");
+    }
+
+    confirmCancel.addEventListener("click", closeResetConfirm);
+    confirmReset.addEventListener("click", performReset);
+
+    confirmModal.addEventListener("mousedown", event => {
+      if (event.target === confirmModal) closeResetConfirm();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (confirmModal.hidden) return;
+
+      if (event.key === "Escape") {
+        closeResetConfirm();
+      } else if (event.key === "Tab") {
+        event.preventDefault();
+        (document.activeElement === confirmCancel ? confirmReset : confirmCancel).focus();
+      }
+    });
+
+    cookieButton.addEventListener("click", handleCookieClick);
+
+    upgradeList.addEventListener("click", event => {
+      const button = event.target.closest("[data-upgrade-id]");
+      if (!button) return;
+
+      buyUpgrade(Number(button.dataset.upgradeId));
+    });
+
+    skinGrid.addEventListener("click", event => {
+      const button = event.target.closest("[data-skin-id]");
+      if (!button || button.disabled) return;
+
+      const skinId = Number(button.dataset.skinId);
+
+      if (!isSkinUnlocked(skins[skinId])) return;
+
+      state.selectedSkin = skinId;
+      applySkin();
+      renderSkins();
+      saveGame();
+    });
+
+    hideOwnedButton.addEventListener("click", () => {
+      hideOwned = !hideOwned;
+      hideOwnedButton.textContent = `Hide Owned: ${hideOwned ? "On" : "Off"}`;
+      renderUpgrades();
+    });
+
+    document.getElementById("saveButton").addEventListener("click", saveGame);
+    document.getElementById("resetButton").addEventListener("click", resetGame);
+    document
+      .getElementById("buyAffordableButton")
+      .addEventListener("click", buyAffordableUpgrades);
+
+    let lastTick = performance.now();
+
+    function gameLoop(now) {
+      const elapsedSeconds = Math.min((now - lastTick) / 1000, 1);
+      lastTick = now;
+
+      if (state.cookiesPerSecond > 0) {
+        const previousTotal = state.totalCookies;
+        const generated = state.cookiesPerSecond * elapsedSeconds;
+
+        addCookies(generated);
+        unlockNewSkinsIfNeeded(previousTotal);
+      }
+
+      renderStats();
+      requestAnimationFrame(gameLoop);
+    }
+
+    setInterval(() => {
+      renderUpgrades();
+      saveGameSilently();
+    }, 2000);
+
+    function saveGameSilently() {
+      writeSave();
+    }
+
+    /*
+      Music - a generative ambient loop built with the Web Audio API
+      (no audio files needed). Am - F - C - G, soft pad + bass + arpeggio,
+      with a light kick/hat groove and the odd sparkle note.
+    */
+    const MUSIC_KEY = "cookie-cosmos-music-v1";
+    const MUSIC_BPM = 92;
+    const MUSIC_STEP = 60 / MUSIC_BPM / 2;          // one eighth note
+    const MUSIC_CHORDS = [
+      { bass: 45, notes: [57, 60, 64, 69] },        // Am
+      { bass: 41, notes: [57, 60, 65, 69] },        // F
+      { bass: 48, notes: [55, 60, 64, 67] },        // C
+      { bass: 43, notes: [55, 59, 62, 67] }         // G
+    ];
+    const ARP_PATTERN = [0, 1, 2, 3, 2, 1, 2, 1];
+    const SPARKLE_NOTES = [69, 72, 74, 76, 79, 81]; // A minor pentatonic
+
+    const music = {
+      ctx: null,
+      master: null,
+      bus: null,
+      noise: null,
+      timer: null,
+      step: 0,
+      nextTime: 0,
+      enabled: true,
+      volume: 0.4
+    };
+
+    const musicButton = document.getElementById("musicButton");
+    const volumeSlider = document.getElementById("volumeSlider");
+
+    const midiToFreq = midi => 440 * Math.pow(2, (midi - 69) / 12);
+
+    function loadMusicPrefs() {
+      try {
+        const prefs = JSON.parse(localStorage.getItem(MUSIC_KEY) || "{}");
+        if (typeof prefs.enabled === "boolean") music.enabled = prefs.enabled;
+        if (Number.isFinite(prefs.volume)) music.volume = Math.min(1, Math.max(0, prefs.volume));
+      } catch {
+        /* ignore bad prefs */
+      }
+    }
+
+    function saveMusicPrefs() {
+      try {
+        localStorage.setItem(MUSIC_KEY, JSON.stringify({
+          enabled: music.enabled,
+          volume: music.volume
+        }));
+      } catch {
+        /* storage unavailable */
+      }
+    }
+
+    function updateMusicUi() {
+      musicButton.textContent = `🎵 Music: ${music.enabled ? "On" : "Off"}`;
+      musicButton.setAttribute("aria-pressed", String(music.enabled));
+      volumeSlider.value = Math.round(music.volume * 100);
+    }
+
+    function setupMusicGraph() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return false;
+
+      const ctx = new AudioCtx();
+
+      const compressor = ctx.createDynamicsCompressor();
+      const master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(compressor);
+      compressor.connect(ctx.destination);
+
+      // Everything plays into "bus"; a soft feedback delay adds space.
+      const bus = ctx.createGain();
+      const delay = ctx.createDelay(1);
+      const feedback = ctx.createGain();
+      const delayTone = ctx.createBiquadFilter();
+      const wet = ctx.createGain();
+
+      delay.delayTime.value = MUSIC_STEP * 3;
+      feedback.gain.value = 0.35;
+      delayTone.type = "lowpass";
+      delayTone.frequency.value = 2200;
+      wet.gain.value = 0.35;
+
+      bus.connect(master);
+      bus.connect(delay);
+      delay.connect(delayTone);
+      delayTone.connect(feedback);
+      feedback.connect(delay);
+      delayTone.connect(wet);
+      wet.connect(master);
+
+      // One second of white noise for hi-hats.
+      const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const data = noise.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+      music.ctx = ctx;
+      music.master = master;
+      music.bus = bus;
+      music.noise = noise;
+      return true;
+    }
+
+    function playPluck(freq, time, duration, type, gain) {
+      const { ctx, bus } = music;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      amp.gain.setValueAtTime(0.0001, time);
+      amp.gain.linearRampToValueAtTime(gain, time + 0.01);
+      amp.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+      osc.connect(amp);
+      amp.connect(bus);
+      osc.start(time);
+      osc.stop(time + duration + 0.05);
+    }
+
+    function playPadNote(freq, time, duration, gain) {
+      const { ctx, bus } = music;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+      const attack = 1.4;
+      const release = 1.6;
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, time);
+      osc.detune.setValueAtTime((Math.random() - 0.5) * 12, time);
+      amp.gain.setValueAtTime(0.0001, time);
+      amp.gain.linearRampToValueAtTime(gain, time + attack);
+      amp.gain.setValueAtTime(gain, time + duration - release);
+      amp.gain.linearRampToValueAtTime(0.0001, time + duration);
+
+      osc.connect(amp);
+      amp.connect(bus);
+      osc.start(time);
+      osc.stop(time + duration + 0.05);
+    }
+
+    function playKick(time) {
+      const { ctx, bus } = music;
+      const osc = ctx.createOscillator();
+      const amp = ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(130, time);
+      osc.frequency.exponentialRampToValueAtTime(42, time + 0.14);
+      amp.gain.setValueAtTime(0.42, time);
+      amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.24);
+
+      osc.connect(amp);
+      amp.connect(bus);
+      osc.start(time);
+      osc.stop(time + 0.3);
+    }
+
+    function playHat(time, gain) {
+      const { ctx, bus, noise } = music;
+      const source = ctx.createBufferSource();
+      const filter = ctx.createBiquadFilter();
+      const amp = ctx.createGain();
+
+      source.buffer = noise;
+      filter.type = "highpass";
+      filter.frequency.value = 7500;
+      amp.gain.setValueAtTime(gain, time);
+      amp.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+
+      source.connect(filter);
+      filter.connect(amp);
+      amp.connect(bus);
+      source.start(time, Math.random() * 0.5, 0.08);
+    }
+
+    function playMusicStep(step, time) {
+      const chord = MUSIC_CHORDS[Math.floor(step / 16) % MUSIC_CHORDS.length];
+      const local = step % 16;   // position inside the two-bar chord
+      const beat = step % 8;     // position inside the bar
+
+      // Pad: one long chord for the whole two bars.
+      if (local === 0) {
+        chord.notes.slice(0, 3).forEach(note => {
+          playPadNote(midiToFreq(note - 12), time, MUSIC_STEP * 16, 0.05);
+        });
+      }
+
+      // Bass: root on 1, a pickup on the "and" of 2, and a fifth on 4.
+      if (beat === 0) playPluck(midiToFreq(chord.bass), time, MUSIC_STEP * 3, "sine", 0.32);
+      if (beat === 3) playPluck(midiToFreq(chord.bass), time, MUSIC_STEP * 1.5, "sine", 0.2);
+      if (beat === 6) playPluck(midiToFreq(chord.bass + 7), time, MUSIC_STEP * 1.5, "sine", 0.16);
+
+      // Arpeggio.
+      const arpNote = chord.notes[ARP_PATTERN[beat]];
+      playPluck(midiToFreq(arpNote), time, MUSIC_STEP * 2.4, "triangle", 0.085);
+
+      // Groove.
+      if (beat === 0 || beat === 4) playKick(time);
+      if (beat % 2 === 1) playHat(time, beat === 7 ? 0.07 : 0.045);
+
+      // Occasional sparkle on top.
+      if (beat % 2 === 0 && Math.random() < 0.2) {
+        const note = SPARKLE_NOTES[Math.floor(Math.random() * SPARKLE_NOTES.length)];
+        playPluck(midiToFreq(note), time, MUSIC_STEP * 4, "sine", 0.06);
+      }
+    }
+
+    function scheduleMusic() {
+      const { ctx } = music;
+      if (!ctx) return;
+
+      // If the timer was throttled, don't burst out a backlog of notes.
+      if (music.nextTime < ctx.currentTime - 0.1) {
+        music.nextTime = ctx.currentTime + 0.05;
+      }
+
+      while (music.nextTime < ctx.currentTime + 0.25) {
+        playMusicStep(music.step, music.nextTime);
+        music.nextTime += MUSIC_STEP;
+        music.step = (music.step + 1) % (MUSIC_CHORDS.length * 16);
+      }
+    }
+
+    function startMusic() {
+      if (!music.ctx && !setupMusicGraph()) return;
+
+      const { ctx, master } = music;
+
+      ctx.resume().then(() => {
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setTargetAtTime(music.volume * 0.7, ctx.currentTime, 0.4);
+      });
+
+      if (!music.timer) {
+        music.nextTime = ctx.currentTime + 0.1;
+        music.timer = setInterval(scheduleMusic, 25);
+      }
+    }
+
+    function stopMusic() {
+      if (!music.ctx) return;
+
+      const { ctx, master } = music;
+
+      clearInterval(music.timer);
+      music.timer = null;
+
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setTargetAtTime(0, ctx.currentTime, 0.15);
+      setTimeout(() => {
+        if (!music.timer) ctx.suspend();
+      }, 900);
+    }
+
+    musicButton.addEventListener("click", () => {
+      music.enabled = !music.enabled;
+      music.enabled ? startMusic() : stopMusic();
+      updateMusicUi();
+      saveMusicPrefs();
+    });
+
+    volumeSlider.addEventListener("input", () => {
+      music.volume = Number(volumeSlider.value) / 100;
+      saveMusicPrefs();
+
+      if (music.ctx && music.timer) {
+        music.master.gain.setTargetAtTime(music.volume * 0.7, music.ctx.currentTime, 0.05);
+      }
+    });
+
+    // Pause while the tab is hidden so it doesn't play in the background.
+    document.addEventListener("visibilitychange", () => {
+      if (!music.ctx || !music.timer) return;
+      document.hidden ? music.ctx.suspend() : music.ctx.resume();
+    });
+
+    // Browsers only allow audio after a user gesture, so start on the first one.
+    ["pointerdown", "keydown"].forEach(type => {
+      window.addEventListener(type, () => {
+        if (music.enabled) startMusic();
+      }, { once: true });
+    });
+
+    loadMusicPrefs();
+    updateMusicUi();
+
+    loadGame();
+    renderAll();
+    requestAnimationFrame(gameLoop);
+
+    window.addEventListener("beforeunload", saveGameSilently);
+  </script>
+</body>
+</html>
+
