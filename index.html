@@ -600,6 +600,33 @@
         min-height: 300px;
       }
     }
+
+    .spotify-section {
+      width: min(calc(100% - 48px), 1500px);
+      margin: 0 auto 24px;
+    }
+
+    .spotify-section h2 {
+      margin: 0 0 14px;
+      font-size: 1.25rem;
+    }
+
+    .spotify-section iframe {
+      display: block;
+      width: 100%;
+      height: 352px;
+      border: 0;
+      border-radius: 12px;
+      background: #121212;
+    }
+
+    @media (max-width: 700px) {
+      .spotify-section {
+        width: calc(100% - 28px);
+        margin-bottom: 14px;
+      }
+    }
+
   </style>
 </head>
 
@@ -675,7 +702,12 @@
     </section>
   </main>
 
-  <div class="modal-backdrop" id="confirmModal" hidden>
+  <section class="panel spotify-section" aria-labelledby="spotify-title">
+    <h2 id="spotify-title">Cookie Cosmos Playlist</h2>
+    <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/playlist/1xQysoqoHfiTshje0ChRX9?utm_source=generator&si=c1dc848eb0824286" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" title="Cookie Cosmos Spotify playlist"></iframe>
+  </section>
+
+<div class="modal-backdrop" id="confirmModal" hidden>
     <div class="panel modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
       <div class="modal-header">
         <h2 id="confirmTitle">Reset everything?</h2>
