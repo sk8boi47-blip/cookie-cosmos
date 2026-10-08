@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cookie Cosmos</title>
+  <link rel="stylesheet" href="theme.css" />
 
   <style>
     :root {
@@ -691,6 +692,7 @@
     <div class="brand">🍪 Cookie Cosmos</div>
 
     <div class="top-actions">
+      <button class="small-button theme-toggle" id="themeButton" aria-pressed="false">✨ Glassy</button>
       <button class="small-button" id="musicButton" aria-pressed="true">🎵 Music: On</button>
       <input class="volume-slider" id="volumeSlider" type="range" min="0" max="100" value="40" aria-label="Music volume" />
       <button class="small-button" id="saveButton">Save</button>
@@ -1575,6 +1577,25 @@
       enabled: true,
       volume: 0.4
     };
+
+    const themeButton = document.getElementById("themeButton");
+
+    function loadTheme() {
+      const glassy = localStorage.getItem("cookie-cosmos-theme") === "glassy";
+      document.body.classList.toggle("glassy", glassy);
+      themeButton.textContent = glassy ? "✨ Glassy" : "◻ Clean";
+      themeButton.setAttribute("aria-pressed", String(glassy));
+    }
+
+    themeButton.addEventListener("click", () => {
+      const glassy = !document.body.classList.contains("glassy");
+      document.body.classList.toggle("glassy", glassy);
+      localStorage.setItem("cookie-cosmos-theme", glassy ? "glassy" : "clean");
+      themeButton.textContent = glassy ? "✨ Glassy" : "◻ Clean";
+      themeButton.setAttribute("aria-pressed", String(glassy));
+    });
+
+    loadTheme();
 
     const musicButton = document.getElementById("musicButton");
     const volumeSlider = document.getElementById("volumeSlider");
