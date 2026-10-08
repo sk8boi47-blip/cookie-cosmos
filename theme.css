@@ -1,0 +1,39 @@
+/* Cookie Cosmos themes */
+body.glassy {
+  --bg: #0f1017;
+  --panel: rgba(34, 29, 48, 0.62);
+  --panel-light: rgba(58, 48, 78, 0.72);
+  --text: #fff7e6;
+  --muted: #c4b8d0;
+  --accent: #ffc857;
+  --accent-dark: #d89518;
+  --success: #80ed99;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(112, 75, 160, .32), transparent 38%),
+    radial-gradient(circle at 90% 20%, rgba(255, 200, 87, .12), transparent 30%),
+    #0f1017;
+}
+body.glassy .topbar {
+  background: rgba(15, 11, 24, 0.68);
+  border-bottom-color: rgba(255,255,255,.12);
+  backdrop-filter: blur(16px);
+}
+body.glassy .panel {
+  background: linear-gradient(145deg, rgba(48,37,70,.72), rgba(31,24,47,.72));
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 16px 45px rgba(0,0,0,.24);
+  backdrop-filter: blur(14px);
+}
+body.glassy .upgrade,
+body.glassy .skin-button {
+  background: rgba(0,0,0,.20);
+  border-color: rgba(255,255,255,.12);
+}
+body.glassy .small-button {
+  background: rgba(48,37,70,.62);
+  border-color: rgba(255,255,255,.18);
+  backdrop-filter: blur(8px);
+}
+body.glassy .linked-image-link { background: rgba(0,0,0,.2); }
+body.glassy .modal-backdrop { backdrop-filter: blur(8px); }
+.theme-toggle { min-width: 94px; }
