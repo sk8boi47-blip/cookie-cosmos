@@ -1391,44 +1391,17 @@
       try {
         saved = localStorage.getItem(SAVE_KEY);
       } catch {
-        saved = null;
-      }
-
-      if (!saved) {
-        state.purchasedUpgrades = [];
-        return;
-      }
-
-      try {
-        const data = JSON.parse(saved);
-
-        state.cookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.cookies), 0)));
-        state.totalCookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.totalCookies), 0)));
-        state.purchasedUpgrades = Array.isArray(data.purchasedUpgrades)
-          ? data.purchasedUpgrades
-          : [];
-        state.selectedSkin = Number(data.selectedSkin) || 0;
-        state.lastSavedAt = Number(data.lastSavedAt) || Date.now();
-
-        const elapsedSeconds = Math.min(
-          Math.max(0, (Date.now() - state.lastSavedAt) / 1000),
-          60 * 60 * 8
-        );
-
-        recalculateStats();
-
-        const offlineCookies = elapsedSeconds * state.cookiesPerSecond;
-
-        if (offlineCookies > 0) {
-          addCookies(offlineCookies);
-
-          setTimeout(() => {
-            showToast(`Welcome back! You earned ${formatNumber(offlineCookies)} offline.`);
-          }, 400);
+        // A corrupt save should not crash startup if storage is unavailable.
+        try {
+          localStorage.removeItem(SAVE_KEY);
+        } catch {
+          // Ignore blocked storage; the game can still start with fresh state.
         }
-      } catch {
-        localStorage.removeItem(SAVE_KEY);
         state.purchasedUpgrades = [];
+        state.cookies = 0;
+        state.totalCookies = 0;
+        state.selectedSkin = 0;
+        state.lastSavedAt = Date.now();
       }
     }
 
@@ -1584,7 +1557,15 @@
     const themeButton = document.getElementById("themeButton");
 
     function loadTheme() {
-      const glassy = localStorage.getItem("cookie-cosmos-theme") === "glassy";
+      let glassy = false;
+
+      // Storage can be disabled in private browsing or restricted embeds.
+      try {
+        glassy = localStorage.getItem("cookie-cosmos-theme") === "glassy";
+      } catch {
+        // Keep the clean theme when preferences cannot be read.
+      }
+
       document.body.classList.toggle("glassy", glassy);
       themeButton.textContent = glassy ? "✨ Glassy" : "◻ Clean";
       themeButton.setAttribute("aria-pressed", String(glassy));
@@ -1593,7 +1574,13 @@
     themeButton.addEventListener("click", () => {
       const glassy = !document.body.classList.contains("glassy");
       document.body.classList.toggle("glassy", glassy);
-      localStorage.setItem("cookie-cosmos-theme", glassy ? "glassy" : "clean");
+
+      try {
+        localStorage.setItem("cookie-cosmos-theme", glassy ? "glassy" : "clean");
+      } catch {
+        // Theme switching still works for this page view without storage.
+      }
+
       themeButton.textContent = glassy ? "✨ Glassy" : "◻ Clean";
       themeButton.setAttribute("aria-pressed", String(glassy));
     });
