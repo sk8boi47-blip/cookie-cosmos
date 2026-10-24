@@ -1391,15 +1391,53 @@
       try {
         saved = localStorage.getItem(SAVE_KEY);
       } catch {
-        // A corrupt save should not crash startup if storage is unavailable.
+        // Storage may be blocked; start a fresh in-memory game.
+        state.purchasedUpgrades = [];
+        return;
+      }
+
+      if (!saved) {
+        state.purchasedUpgrades = [];
+        return;
+      }
+
+      try {
+        const data = JSON.parse(saved);
+
+        state.cookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.cookies), 0)));
+        state.totalCookies = Math.min(MAX_COOKIES, Math.max(0, finiteOr(Number(data.totalCookies), 0)));
+        state.purchasedUpgrades = Array.isArray(data.purchasedUpgrades)
+          ? data.purchasedUpgrades
+          : [];
+        state.selectedSkin = Number(data.selectedSkin) || 0;
+        state.lastSavedAt = Number(data.lastSavedAt) || Date.now();
+
+        const elapsedSeconds = Math.min(
+          Math.max(0, (Date.now() - state.lastSavedAt) / 1000),
+          60 * 60 * 8
+        );
+
+        recalculateStats();
+
+        const offlineCookies = elapsedSeconds * state.cookiesPerSecond;
+
+        if (offlineCookies > 0) {
+          addCookies(offlineCookies);
+
+          setTimeout(() => {
+            showToast(`Welcome back! You earned ${formatNumber(offlineCookies)} offline.`);
+          }, 400);
+        }
+      } catch {
+        // Discard a malformed save without letting blocked storage crash startup.
         try {
           localStorage.removeItem(SAVE_KEY);
         } catch {
-          // Ignore blocked storage; the game can still start with fresh state.
+          // Storage is unavailable; continue with a fresh in-memory game.
         }
-        state.purchasedUpgrades = [];
         state.cookies = 0;
         state.totalCookies = 0;
+        state.purchasedUpgrades = [];
         state.selectedSkin = 0;
         state.lastSavedAt = Date.now();
       }
