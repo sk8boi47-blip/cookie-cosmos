@@ -1,7 +1,7 @@
 name = "oliworx-arcade-chat"
 main = "cloudflare/arcade-chat.js"
 compatibility_date = "2026-10-31"
-workers_dev = false
+workers_dev = true
 
 [ai]
 binding = "AI"
@@ -13,7 +13,3 @@ namespace_id = "2026103101"
 [ratelimits.simple]
 limit = 8
 period = 60
-
-[[routes]]
-pattern = "oliworx.dev/api/*"
-zone_name = "oliworx.dev"
